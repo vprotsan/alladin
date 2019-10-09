@@ -32,7 +32,7 @@ gulp.task('sass-build', function() {
     .pipe(gulp.dest('app/css')) // Outputs it in the css folder
     .pipe(autoprefixer())
     .pipe(cssnano())
-    .pipe(gulp.dest('dist/css'));  
+    .pipe(gulp.dest('dist/css'));
 })
 
 gulp.task('sass', () =>
@@ -50,7 +50,7 @@ gulp.task('compressjshtmlHTML', function () {
             console.log(e);  })))
         .pipe(gulpIf('*.css', autoprefixer()))
         .pipe(gulpIf('*.css', cssnano()))
-        .pipe(gulp.dest('dist/'))      
+        .pipe(gulp.dest('dist/'))
 });
 
 
@@ -66,7 +66,7 @@ gulp.task('watch', function() {
 })
 
 
-// Optimizing Images 
+// Optimizing Images
 gulp.task('images', function() {
   return gulp.src('app/images/**/*.+(png|jpg|jpeg|gif|svg)')
     // Caching images that ran through imagemin
@@ -83,7 +83,7 @@ gulp.task('js', function() {
     .pipe(gulp.dest('dist/js'))
 })
 
-// Cleaning 
+// Cleaning
 gulp.task('clean', function() {
   return del.sync('dist').then(function(cb) {
     return cache.clearAll(cb);
@@ -97,19 +97,30 @@ gulp.task('clean:dist', function() {
 // Build Sequences
 // ---------------
 
-gulp.task('default', function(callback) {
-  runSequence(['browserSync','sass-build'], 'watch',
-    callback
-  )
-})
+// gulp.task('default', function(callback) {
+//   runSequence(['browserSync','sass-build'], 'watch',
+//     callback
+//   )
+// })
 
-gulp.task('build', function(callback) {
-  runSequence(
-    'clean:dist',
-    'sass-build',
-    'compressjshtmlHTML',
-    ['images','js'],
-    callback
-  )
-})
+// gulp.task('styles', gulp.parallel('clean', function() {...}));
+// gulp.task('scripts', gulp.parallel('clean', function() {...}));
+//
+// gulp.task('clean', function() {...});
+//
+// gulp.task('default', gulp.parallel('scripts', 'styles'));
 
+gulp.task('runTogether', gulp.parallel('browserSync', 'sass-build'));
+gulp.task('default', gulp.series('runTogether', 'watch'));
+
+// gulp.task('build', function(callback) {
+//   runSequence(
+//     'clean:dist',
+//     'sass-build',
+//     'compressjshtmlHTML',
+//     ['images','js'],
+//     callback
+//   )
+// })
+
+gulp.task('build', gulp.series('clean:dist', 'sass-build', 'compressjshtmlHTML','images','js'));
