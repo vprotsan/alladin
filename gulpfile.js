@@ -23,14 +23,11 @@ gulp.task('browserSync', function() {
       baseDir: 'app/'
     }
   })
-  done()
 })
 
-// BrowserSync Reload
-function browserSyncReload(done) {
+gulp.task('browserSyncReload', function(){
   browsersync.reload();
-  done();
-}
+})
 
 gulp.task('sass-build', function() {
   return gulp.src('app/scss/*.scss') // Gets all files ending with .scss in app/scss and children dirs
@@ -38,7 +35,8 @@ gulp.task('sass-build', function() {
     .pipe(gulp.dest('app/css')) // Outputs it in the css folder
     .pipe(autoprefixer())
     .pipe(cssnano())
-    .pipe(gulp.dest('dist/css'));
+    .pipe(gulp.dest('dist/css'))
+    .pipe(browserSync.stream());
 })
 
 gulp.task('sass', () =>
@@ -61,11 +59,11 @@ gulp.task('compressjshtmlHTML', function () {
 
 // Watchers
 gulp.task('watch', function() {
-  gulp.watch('app/scss/**/*', ['sass-build']);
-  gulp.watch('app/js/*', browserSync.reload);
-  gulp.watch('app/css/**/*.css', browserSync.reload);
-  gulp.watch('app/*.php', browserSync.reload);
-  gulp.watch('app/*.html', browserSync.reload);
+  gulp.watch('app/scss/**/*', gulp.series('sass-build'));
+  gulp.watch('app/js/*', gulp.series(browserSync.reload));
+  gulp.watch('app/css/**/*.css', gulp.series(browserSync.reload));
+  gulp.watch('app/*.php', gulp.series(browserSync.reload));
+  gulp.watch('app/*.html', gulp.series(browserSync.reload));
   gulp.watch('app/../*.php').on('change', function () {
     browserSync.reload()});
 })
@@ -89,7 +87,7 @@ gulp.task('js', function() {
 
 // Cleaning
 gulp.task('clean', function() {
-  return del.sync('dist').then(function(cb) {
+  return del('dist').then(function(cb) {
     return cache.clearAll(cb);
   });
 })
@@ -98,14 +96,12 @@ gulp.task('clean:dist', function() {
   return del(['dist/**/*', '!dist/images', '!dist/images/**/*']);
 });
 
-// Build Sequences
-// ---------------
 
-gulp.task('runTogether', gulp.parallel('browserSync', 'sass-build'));
-gulp.task('default', gulp.series('runTogether', 'watch'));
+
+gulp.task('default', gulp.parallel('watch', 'browserSync'));
+
 
 
 gulp.task('imgAndJs', gulp.parallel('images', 'js'));
 gulp.task('sequence', gulp.series('clean:dist', 'sass-build','compressjshtmlHTML','imgAndJs'));
-
 gulp.task('build', gulp.series('sequence'));
