@@ -23,8 +23,14 @@ gulp.task('browserSync', function() {
       baseDir: 'app/'
     }
   })
+  done()
 })
 
+// BrowserSync Reload
+function browserSyncReload(done) {
+  browsersync.reload();
+  done();
+}
 
 gulp.task('sass-build', function() {
   return gulp.src('app/scss/*.scss') // Gets all files ending with .scss in app/scss and children dirs
@@ -53,7 +59,6 @@ gulp.task('compressjshtmlHTML', function () {
         .pipe(gulp.dest('dist/'))
 });
 
-
 // Watchers
 gulp.task('watch', function() {
   gulp.watch('app/scss/**/*', ['sass-build']);
@@ -64,7 +69,6 @@ gulp.task('watch', function() {
   gulp.watch('app/../*.php').on('change', function () {
     browserSync.reload()});
 })
-
 
 // Optimizing Images
 gulp.task('images', function() {
@@ -91,36 +95,17 @@ gulp.task('clean', function() {
 })
 
 gulp.task('clean:dist', function() {
-  return del.sync(['dist/**/*', '!dist/images', '!dist/images/**/*']);
+  return del(['dist/**/*', '!dist/images', '!dist/images/**/*']);
 });
 
 // Build Sequences
 // ---------------
 
-// gulp.task('default', function(callback) {
-//   runSequence(['browserSync','sass-build'], 'watch',
-//     callback
-//   )
-// })
-
-// gulp.task('styles', gulp.parallel('clean', function() {...}));
-// gulp.task('scripts', gulp.parallel('clean', function() {...}));
-//
-// gulp.task('clean', function() {...});
-//
-// gulp.task('default', gulp.parallel('scripts', 'styles'));
-
 gulp.task('runTogether', gulp.parallel('browserSync', 'sass-build'));
 gulp.task('default', gulp.series('runTogether', 'watch'));
 
-// gulp.task('build', function(callback) {
-//   runSequence(
-//     'clean:dist',
-//     'sass-build',
-//     'compressjshtmlHTML',
-//     ['images','js'],
-//     callback
-//   )
-// })
 
-gulp.task('build', gulp.series('clean:dist', 'sass-build', 'compressjshtmlHTML','images','js'));
+gulp.task('imgAndJs', gulp.parallel('images', 'js'));
+gulp.task('sequence', gulp.series('clean:dist', 'sass-build','compressjshtmlHTML','imgAndJs'));
+
+gulp.task('build', gulp.series('sequence'));
